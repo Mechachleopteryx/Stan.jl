@@ -2,57 +2,59 @@
 
 ## Stan.jl
 
-[Stan](https://github.com/stan-dev/stan) is a system for statistical modeling, data analysis, and prediction. It is extensively used in social, biological, and physical sciences, engineering, and business. The Stan program language and interfaces are documented [here](http://mc-stan.org/documentation/).
+[Stan](https://github.com/stan-dev/stan) is a system for statistical modeling, data analysis, and prediction. It is extensively used in social, biological, and physical sciences, engineering, and business. The Stan language and the interfaces to execute a Stan language program are documented [here](http://mc-stan.org/documentation/).
 
-[cmdstan](http://mc-stan.org/interfaces/cmdstan.html) is the shell/command line interface to run Stan language programs. 
+[Cmdstan](http://mc-stan.org/interfaces/cmdstan.html) is the shell/command line interface to run Stan language programs. 
 
 [Stan.jl](https://github.com/StanJulia/Stan.jl) wraps cmdstan and captures the samples for further processing.
 
 ## StanJulia overview
 
-Stan.jl is part of the [StanJulia Github organization](https://github.com/StanJulia) set of packages. CmdStan.jl is one of two options in StanJulia to capture draws from a Stan language program. The other option is *under development* and is illustrated in Stan.jl and [StatisticalRethinking.jl](https://github.com/StatisticalRethinkingJulia/StatisticalRethinking.jl).
+Stan.jl is part of the [StanJulia Github organization](https://github.com/StanJulia) set of packages.
 
-These are not the only options to sample using Stan from Julia. Valid other options are PyCall.jl/PyStan and StanRun.jl.
+Stan.jl is the primary option in StanJulia to capture draws from a Stan language program.  How to use the underlying component packages in StanJulia, e.g. StanSample.jl, StanOptimize.jl and StanVariational.jl, is illustrated in Stan.jl and in a much broader context in [StatisticalRethinking.jl](https://github.com/StatisticalRethinkingJulia).
 
-On a very high level, a typical workflow for using CmdStan.jl looks like:
+The other option to capture draws from a Stan language program in StanJulia is *CmdStan*, which is the older approach and is currently in maintenance mode. Thus new features will be added to Stan.jl and the supporting component packages.
+
+These are not the only options to sample using Stan from Julia. Valid other options are PyCall.jl/PyStan and StanRun.jl. In addition, Julia provides other, pure Julia, mcmc options such as DynamicHMC.jl, Turing.jl and Mamba.jl.
+
+On a very high level, a typical workflow for using Stan.jl looks like:
 
 ```
-using CmdStan
+using Stan
 
 # Define a Stan language program.
 bernoulli = "..."
 
-# Prepare for calling cmdstan.
+# Create and compile a SampleModel, an OptimizeModel, etc.:
 sm = SampleModel(...)
 
-# Compile and run Stan program, collect draws.
+# Run the compiled Stan languauge program and collect draws:
 rc = stan_sample(...)
 
-if rc == 0
-  # Cmdstan summary of result
+if success(rc)
+  # Retrieve Stan's `stansummary` executable result:
   sdf = read_summary(sm)
 
-  # Display the summary as a DataFrame
+  # Display the summary as a DataFrame:
   sdf |> display
 
-  # Show the draws
-  samples = read_samples(sm, output_format=:array)
+  # Extract the draws from the SampleModel:
+  named_tuple_of_samples = read_samples(sm)
 
 end
 ```
-This workflow creates an array of draws, the default value for the `output_format` argument in read_samples().
+This workflow creates an NamedTuple with the draws, the default value for the `output_format` argument in read_samples().
 
-If at this point a vector of DataFrames (a DataFrame for each chain) is preferred:
+If a DataFrame (with all chains appended) is preferred:
 ```
-df = read_samples(sm; output_format=:dataframes)
+df = read_samples(sm; output_format=:dataframe)
 ```
-Other options are `:dataframe, :dataframes`, `:mcmcchains` and `:particles`. See
+Other options are `:dataframes`, `:mcmcchains`, `:array` and `:particles`. See
 ```
 ?read_samples
 ```
-for more details.
-
-Version 5 of Stan.jl used `:mcmcchains` by default but the dependencies of MCMCChains.jl, including access to plotting features, lead to long compile times. In version 6 the default is :array again. In order to use the other options glue code is needed which is handled by Requires.jl.
+for more details. Walkthrough and Walkthrough2 show StanSample.jl in action.
 
 ## References
 
@@ -66,8 +68,16 @@ There is no shortage of good books on Bayesian statistics. A few of my favorites
 
 4. [McElreath: Statistical Rethinking](http://xcelab.net/rm/statistical-rethinking/)
 
-5. [Gelman, Carlin, and others: Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
+5. [Kruschke: Doing Bayesian Data Analysis](https://sites.google.com/site/doingbayesiandataanalysis/what-s-new-in-2nd-ed)
 
-and a great read (and implementation in DynamicHMC.jl):
+6. [Lee, Wagenmakers: Bayesian Cognitive Modeling](https://www.cambridge.org/us/academic/subjects/psychology/psychology-research-methods-and-statistics/bayesian-cognitive-modeling-practical-course?format=PB&isbn=9781107603578)
 
-5. [Betancourt: A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434)
+7. [Gelman, Carlin, and others: Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
+
+8. [Causal Inference in Statistics - A Primer](https://www.wiley.com/en-us/Causal+Inference+in+Statistics%3A+A+Primer-p-9781119186847)
+
+9. [Betancourt: A Conceptual Introduction to Hamiltonian Monte Carlo](https://arxiv.org/abs/1701.02434)
+
+10. [Gelman, Carlin, and others: Bayesian Data Analysis](http://www.stat.columbia.edu/~gelman/book/)
+
+11. [Pearl, Judea and MacKenzie, Dana: The Book of Why](https://www.basicbooks.com/titles/judea-pearl/the-book-of-why/9780465097616/)

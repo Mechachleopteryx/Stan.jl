@@ -1,5 +1,9 @@
 # A walk-through example (using StanSample.jl)
 
+This script assumes StanSample has been installed in your environment.
+
+A better approach would be to use projects, e.g. DrWatson.jl, to manage which packages are available.
+
 Make StanSample.jl available:
 ```
 using StanSample
@@ -23,7 +27,7 @@ model {
 ";
 ```
 
-Create a SampleModel object:
+Create and compile a SampleModel object:
 
 ```
 sm = SampleModel("bernoulli", model);
@@ -31,7 +35,7 @@ sm = SampleModel("bernoulli", model);
 
 Above SampleModel() call creates a default model for sampling. See `?SampleModel` for details.
 
-The observed input data:
+The observed input data as a Dict:
 
 ```
 data = Dict("N" => 10, "y" => [0, 1, 0, 1, 0, 0, 0, 0, 0, 1]);
@@ -39,13 +43,14 @@ data = Dict("N" => 10, "y" => [0, 1, 0, 1, 0, 0, 0, 0, 0, 1]);
 
 Run a simulation by calling stan_sample(), passing in the model and data: 
 ```
-rc = stan_sample(sm, data=data);
+rc = stan_sample(sm; data);
 
 if success(rc)
-  samples = read_samples(sm);
+  samples_df = read_samples(sm; output_format=:dataframe);
+  samples_df |> display
 end
 ```
 
-Many examples are provided in the 3 Example subdirectories. In the test directory a similar set of examples is included that do not depend on MCMCChains.jl.
+Notice that data and init are optional keyword arguments to `stan_sample()`. Julia expands `data` to `data=data` or you can use `data=your_data`.
 
-Additional examples can be found in [StanSample.jl](https://github.com/StanJulia/StanSample.jl) and [StatisticalRethinking.jl](https://github.com/StatisticalRethinkingJulia/StatisticalRethinking.jl).
+A further example can be found in WALKTHROUGH2.md.
